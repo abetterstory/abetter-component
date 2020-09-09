@@ -1,0 +1,28 @@
+{
+    "name": "abetter/component",
+    "description": "A Better Laravel Component directive, for exceptionally fast web applications.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Johan Sjöland",
+            "email": "johan@sjoland.com"
+        }
+    ],
+    "require": {
+	},
+	"autoload": {
+		"psr-4": {
+			"ABetter\\Component\\": "src/"
+		},
+		"files": [
+			"src/helpers.php"
+		]
+	},
+	"extra": {
+        "laravel": {
+            "providers": [
+                "ABetter\\Component\\ServiceProvider"
+            ]
+        }
+    }
+}
