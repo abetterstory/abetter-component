@@ -9,17 +9,20 @@ class BladeServiceProvider extends ServiceProvider {
 
     public function boot() {
 
-		view()->addLocation(base_path().'/vendor/abetter/component/views');
-
-		// Component (extends laravel component directive)
-		Blade::directive('component', function($expression){
-			list($path,$vars,$end) = self::parseExpression($expression);
+		// AComponent (extends laravel component directive)
+		Blade::directive('acomponent', function($expression){
+			list($path,$vars,$class,$end) = self::parseExpression($expression);
 			if (!$view = self::componentExists(self::parseRelativePath($path))) { // Test relative
 				if (!$view = self::componentExists($path)) { // Test original
 					$view = 'components.missing.missing'; // Fallback
 				}
 			}
-			return "<?php \$__env->startComponent('{$view}', array_merge({$vars},['component_name' => '{$path}'])); ?>";
+			$end = ($end) ? "echo \$__env->renderComponent();" : "";
+			return "<?php \$__env->startComponent('{$view}', array_merge({$vars},['componentName' => '{$path}'])); {$end} ?>";
+		});
+
+		Blade::directive('endacomponent', function(){
+			return "<?php echo \$__env->renderComponent(); ?>";
 		});
 
     }
@@ -31,15 +34,24 @@ class BladeServiceProvider extends ServiceProvider {
 	// ---
 
 	public static function parseExpression($parse) {
-		$id = trim(strtok($parse,','));
-		$vars = trim(str_replace($id,'',$parse),',');
-		$vars = preg_replace('/(\'|") ?(=&gt;|=) ?(\'|")/',"$1 => $3",$vars);
-		$end = trim(preg_match('/, ?(end|true|1)$/i',$parse));
-		if ($end) $vars = trim(substr($vars,0,strrpos($vars,',')));
-		$exp = array();
-		$exp[0] = trim($id,'\'');
-		$exp[1] = ($vars) ? $vars : '[]';
-		$exp[2] = ($end) ? TRUE : FALSE;
+		if ($end = preg_match('/,\s?true/i',$parse)) {
+			$parse = preg_replace('/,\s?true/i',"",$parse);
+		}
+		$strings = strtok($parse,'[');
+		$data = str_replace($strings,"",$parse);
+		$data = preg_replace('/(\'|") ?(=&gt;|=) ?(\'|")/',"$1 => $3",$data);
+		$params = explode(',',trim($strings,' ,'));
+		$name = trim(preg_replace('/(\'|")/',"",$params[0]));
+		$class = "";
+		if (!empty($params[1])) {
+			$class = $name;
+			$name = trim(preg_replace('/(\'|")/',"",$params[1]));
+		}
+		$exp = [];
+		$exp[0] = $name;
+		$exp[1] = ($data) ? $data : '[]';
+		$exp[2] = ($class) ? $class : "";
+		$exp[3] = ($end) ? TRUE : FALSE;
 		return $exp;
 	}
 
