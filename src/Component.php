@@ -10,8 +10,6 @@ class Component extends LaravelComponent {
 	public $componentVar;
 	public $viewFallback = 'components.missing.missing';
 
-	public static $componentCache = [];
-
 	// ---
 
 	public function __construct() {
@@ -70,20 +68,6 @@ class Component extends LaravelComponent {
 			return $this->viewFallback;
 		}
 		return $view;
-	}
-
-	// ---
-
-	public static function cache($key,$value=NULL) {
-		return (self::$componentCache[$key] = $value);
-	}
-
-	public static function isCached($key) {
-		return (isset(self::$componentCache[$key])) ? TRUE : FALSE;
-	}
-
-	public static function cached($key) {
-		return (self::$componentCache[$key] ?? NULL);
 	}
 
 }

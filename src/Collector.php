@@ -9,6 +9,8 @@ class Collector {
 	public $debug;
 	public $dev;
 
+	public static $cache = [];
+
 	// ---
 
 	public function __construct() {
@@ -77,9 +79,14 @@ class Collector {
 		return (object) $this->setMethod($method,$return,$options);
 	}
 
+	public function setEmpty($return) {
+		return (!empty($this->dev)) ? $return : "";
+	}
+
 	// ---
 
 	public function setMethod($method, $return=NULL, $options=[]) {
+		if (self::isCached($method)) return self::cached($method);
 		if (empty($method)) return $this->setEmpty($return);
 		$options = (empty($options) && is_array($return)) ? $return : $options;
 		$data = NULL;
@@ -92,11 +99,21 @@ class Collector {
 		if ($data === NULL && $this->debug) {
 			echo "<!-- missing-data:{$this->var}.{$method} -->";
 		}
-		return ($data === NULL) ? $this->setEmpty($return) : $data;
+		return ($data === NULL) ? $this->setEmpty($return) : self::cache($method,$data);
 	}
 
-	public function setEmpty($return) {
-		return (!empty($this->dev)) ? $return : "";
+	// ---
+
+	public static function cache($key,$value=NULL) {
+		return (self::$cache[$key] = $value);
+	}
+
+	public static function isCached($key) {
+		return (isset(self::$cache[$key])) ? TRUE : FALSE;
+	}
+
+	public static function cached($key) {
+		return (self::$cache[$key] ?? NULL);
 	}
 
 }
