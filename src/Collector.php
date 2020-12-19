@@ -44,7 +44,7 @@ class Collector {
 	// ---
 
 	public function set($method, $return=NULL, $options=[]) {
-		switch (gettype($return)) {
+		switch (strtolower(gettype($return))) {
 			case 'boolean' : return $this->setBoolean($method,$return,$options);
 			case 'integer' : return $this->setInteger($method,$return,$options);
 			case 'double' : return $this->setFloat($method,$return,$options);
@@ -100,6 +100,36 @@ class Collector {
 			echo "<!-- missing-data:{$this->var}.{$method} -->";
 		}
 		return ($data === NULL) ? $this->setEmpty($return) : self::cache($method,$data);
+	}
+
+	// ---
+
+	public function get($method, $return=NULL, $options=[]) {
+		return $this->get($method,$return,$options);
+	}
+
+	public function getBoolean($method, $return=NULL, $options=[]) {
+		return $this->setBoolean($method,$return,$options);
+	}
+
+	public function getInteger($method, $return=NULL, $options=[]) {
+		return $this->setInteger($method,$return,$options);
+	}
+
+	public function getFloat($method, $return=NULL, $options=[]) {
+		return $this->setFloat($method,$return,$options);
+	}
+
+	public function getString($method, $return=NULL, $options=[]) {
+		return $this->setString($method,$return,$options);
+	}
+
+	public function getArray($method, $return=NULL, $options=[]) {
+		return $this->setArray($method,$return,$options);
+	}
+
+	public function getObject($method, $return=NULL, $options=[]) {
+		return $this->setObject($method,$return,$options);
 	}
 
 	// ---
