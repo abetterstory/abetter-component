@@ -11,6 +11,11 @@ class ServiceProvider extends BaseServiceProvider {
 
 		\View::addLocation(base_path().'/vendor/abetter/component/views');
 
+		$this->loadViewComponentsAs('', [
+			Component::class,
+	        View::class,
+	    ]);
+
 	}
 
     public function register() {
