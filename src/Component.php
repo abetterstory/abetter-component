@@ -55,8 +55,12 @@ class Component extends LaravelComponent {
 		$reflector = new \ReflectionClass($class);
 		$path = dirname($reflector->getFileName());
 		$view = (!empty($this->componentView)) ? $this->componentView : strtolower(class_basename($class));
+		$current = \Arr::last($GLOBALS['view_data'] ?? []);
 		$attributes = $this->data()['attributes'] ?? [];
 		\View::addLocation($path);
+		if (!empty($current['path'])) {
+			\View::addLocation($current['path']);
+		}
 		foreach ($attributes AS $key => $val) {
 			if (preg_match('/^\-/',$key)) {
 				$view .= $key;
