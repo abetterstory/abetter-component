@@ -8,6 +8,7 @@ use Illuminate\View\Component as LaravelComponent;
 class Component extends LaravelComponent {
 
 	public $componentVar;
+	public $componentView;
 	public $viewFallback = 'components.missing.missing';
 
 	// ---
@@ -19,7 +20,7 @@ class Component extends LaravelComponent {
 	// ---
 
 	public function boot() {
-		$this->componentVar = class_basename(get_called_class());
+		$this->componentVar = (!empty($this->componentVar)) ? $this->componentVar : class_basename(get_called_class());
 		$this->{$this->componentVar} = new Collector($this,$this->componentVar);
 		$this->service();
 		$this->build();
@@ -53,7 +54,7 @@ class Component extends LaravelComponent {
 		$class = get_called_class();
 		$reflector = new \ReflectionClass($class);
 		$path = dirname($reflector->getFileName());
-		$view = strtolower(class_basename($class));
+		$view = (!empty($this->componentView)) ? $this->componentView : strtolower(class_basename($class));
 		$attributes = $this->data()['attributes'] ?? [];
 		\View::addLocation($path);
 		foreach ($attributes AS $key => $val) {
