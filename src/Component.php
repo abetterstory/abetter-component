@@ -55,17 +55,21 @@ class Component extends LaravelComponent {
 		$path = dirname($reflector->getFileName());
 		$view = strtolower(class_basename($class));
 		$attributes = $this->data()['attributes'] ?? [];
+		\View::addLocation($path);
 		foreach ($attributes AS $key => $val) {
-			if (preg_match('/^\./',$key)) {
-				$view = $key;
-			}
 			if (preg_match('/^\-/',$key)) {
 				$view .= $key;
+			} else if (preg_match('/^\.+/',$key)) {
+				$view = ltrim($key,'.');
+				\View::addLocation(dirname($path)); // Test parent
+				\View::addLocation(dirname(dirname($path))); // Test grandparent
 			}
 		}
-		\View::addLocation($path);
 		if (!\View::exists($view)) {
-			return $this->viewFallback;
+			$view .= '.'.\Arr::last(explode('.',$view)); // Test dir
+		}
+		if (!\View::exists($view)) {
+			$view = $this->viewFallback;
 		}
 		return $view;
 	}
