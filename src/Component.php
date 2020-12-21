@@ -44,39 +44,67 @@ class Component extends LaravelComponent {
 
 	public function render() {
 		return function($data) {
-			return $this->findView($data);
+			return $this->viewFind($data);
 		};
     }
 
 	// ---
 
-	public function findView($data) {
+	public function viewFind($data) {
 		$class = get_called_class();
 		$reflector = new \ReflectionClass($class);
 		$path = dirname($reflector->getFileName());
 		$view = (!empty($this->componentView)) ? $this->componentView : strtolower(class_basename($class));
 		$attributes = $this->data()['attributes'] ?? [];
 		$current = \Arr::last($GLOBALS['view_data'] ?? []);
-		if (!empty($current['path'])) {
-			\View::addLocation($current['path']);
-		}
-		\View::addLocation($path);
+		$climb = NULL;
 		foreach ($attributes AS $key => $val) {
 			if (preg_match('/^\-/',$key)) {
 				$view .= $key;
-			} else if (preg_match('/^\.+/',$key)) {
+			} else if (preg_match('/^\.+/',$key,$match)) {
 				$view = ltrim($key,'.');
-				\View::addLocation(dirname($path)); // Test parent
-				\View::addLocation(dirname(dirname($path))); // Test grandparent
+				$climb = $match[0];
 			}
 		}
-		if (!\View::exists($view)) {
-			$view .= '.'.\Arr::last(explode('.',$view)); // Test dir
+		// 1. Try Class file dir
+		\View::addLocation($path);
+		if ($exist = $this->viewExist($view)) {
+			return $exist;
 		}
-		if (!\View::exists($view)) {
-			$view = $this->viewFallback;
+		// 2. Try Blade file dir
+		if (!empty($current['path'])) {
+			\View::addLocation($current['path']);
 		}
-		return $view;
+		if ($exist = $this->viewExist($view)) {
+			return $exist;
+		}
+		// 3. Try Parents dir
+		\View::addLocation(dirname($path));
+		if (!empty($current['path'])) {
+			\View::addLocation(dirname($current['path']));
+		}
+		if ($exist = $this->viewExist($view)) {
+			return $exist;
+		}
+		// 4. Try Grandparents dir
+		if (count($climb) > 1) {
+			\View::addLocation(dirname(dirname($path)));
+			if (!empty($current['path'])) {
+				\View::addLocation(dirname(dirname($current['path'])));
+			}
+			if ($exist = $this->viewExist($view)) {
+				return $exist;
+			}
+		}
+		// 5. Fallback
+		return $this->viewFallback;
+	}
+
+	public function viewExist($view) {
+		if (\View::exists($view)) return $view;
+		$view .= '.'.\Arr::last(explode('.',$view)); // Test dir
+		if (\View::exists($view)) return $view;
+		return FALSE;
 	}
 
 }
