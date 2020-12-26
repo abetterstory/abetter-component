@@ -57,13 +57,13 @@ class Component extends LaravelComponent {
 		$view = (!empty($this->componentView)) ? $this->componentView : strtolower(class_basename($class));
 		$attributes = $this->data()['attributes'] ?? [];
 		$current = \Arr::last($GLOBALS['view_data'] ?? []);
-		$climb = NULL;
+		$climb = '';
 		foreach ($attributes AS $key => $val) {
 			if (preg_match('/^\-/',$key)) {
 				$view .= $key;
 			} else if (preg_match('/^\.+/',$key,$match)) {
 				$view = ltrim($key,'.');
-				$climb = $match[0];
+				$climb = (string) $match[0];
 			}
 		}
 		// 1. Try Class file dir
@@ -87,7 +87,7 @@ class Component extends LaravelComponent {
 			return $exist;
 		}
 		// 4. Try Grandparents dir
-		if (count($climb) > 1) {
+		if (strlen($climb) > 1) {
 			\View::addLocation(dirname(dirname($path)));
 			if (!empty($current['path'])) {
 				\View::addLocation(dirname(dirname($current['path'])));
