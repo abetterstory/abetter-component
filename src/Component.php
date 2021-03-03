@@ -8,6 +8,7 @@ use Illuminate\View\Component as LaravelComponent;
 class Component extends LaravelComponent {
 
 	public $componentVar;
+	public $componentPath;
 	public $componentView;
 	public $viewFallback = 'components.missing.missing';
 
@@ -53,7 +54,8 @@ class Component extends LaravelComponent {
 	public function viewFind($data) {
 		$class = get_called_class();
 		$reflector = new \ReflectionClass($class);
-		$path = dirname($reflector->getFileName());
+		$dir = dirname($reflector->getFileName());
+		$path = (!empty($this->componentPath)) ? $this->componentPath : '';
 		$view = (!empty($this->componentView)) ? $this->componentView : strtolower(class_basename($class));
 		$attributes = $this->data()['attributes'] ?? [];
 		$current = \Arr::last($GLOBALS['view_data'] ?? []);
@@ -66,8 +68,10 @@ class Component extends LaravelComponent {
 				$climb = (string) $match[0];
 			}
 		}
+		if ($path) $view = $path.'.'.$view;
+		// ---
 		// 1. Try Class file dir
-		\View::addLocation($path);
+		\View::addLocation($dir);
 		if ($exist = $this->viewExist($view)) {
 			return $exist;
 		}
@@ -79,7 +83,7 @@ class Component extends LaravelComponent {
 			return $exist;
 		}
 		// 3. Try Parents dir
-		\View::addLocation(dirname($path));
+		\View::addLocation(dirname($dir));
 		if (!empty($current['path'])) {
 			\View::addLocation(dirname($current['path']));
 		}
@@ -88,7 +92,7 @@ class Component extends LaravelComponent {
 		}
 		// 4. Try Grandparents dir
 		if (strlen($climb) > 1) {
-			\View::addLocation(dirname(dirname($path)));
+			\View::addLocation(dirname(dirname($dir)));
 			if (!empty($current['path'])) {
 				\View::addLocation(dirname(dirname($current['path'])));
 			}
